@@ -2,23 +2,27 @@ package article
 
 import (
 	"context"
-	"github.com/rhanmar/blog/internal/repository/article"
 )
 
-type Service struct {
-	articleRepo *article.Repository
+type articleRepository interface {
+	GetArticles(context.Context) ([]*Article, error)
+	GetArticleByID(context.Context, int64) (*Article, error)
 }
 
-func NewService(articleRepo *article.Repository) *Service {
+type Service struct {
+	articleRepo articleRepository
+}
+
+func NewService(articleRepo articleRepository) *Service {
 	return &Service{
 		articleRepo: articleRepo,
 	}
 }
 
-func (s *Service) GetArticles(ctx context.Context) ([]article.Article, error) {
+func (s *Service) GetArticles(ctx context.Context) ([]*Article, error) {
 	return s.articleRepo.GetArticles(ctx)
 }
 
-func (s *Service) GetArticleByID(ctx context.Context, id int64) (*article.Article, error) {
+func (s *Service) GetArticleByID(ctx context.Context, id int64) (*Article, error) {
 	return s.articleRepo.GetArticleByID(ctx, id)
 }

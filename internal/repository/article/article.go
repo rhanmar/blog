@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/v5"
+	articleSvc "github.com/rhanmar/blog/internal/services/article"
 )
 
 type Repository struct {
@@ -16,7 +17,7 @@ func NewRepository(conn *pgx.Conn) *Repository {
 	return &Repository{conn: conn}
 }
 
-func (r *Repository) GetArticles(ctx context.Context) ([]Article, error) {
+func (r *Repository) GetArticles(ctx context.Context) ([]*articleSvc.Article, error) {
 	qb := squirrel.Select("*").From("article")
 	sql, args, err := qb.ToSql()
 	if err != nil {
@@ -31,7 +32,7 @@ func (r *Repository) GetArticles(ctx context.Context) ([]Article, error) {
 	if err != nil {
 		return nil, err
 	}
-	articles := make([]Article, 0)
+	articles := make([]*Article, 0)
 
 	for rows.Next() {
 		var article Article
@@ -39,12 +40,12 @@ func (r *Repository) GetArticles(ctx context.Context) ([]Article, error) {
 		if err != nil {
 			return nil, err
 		}
-		articles = append(articles, article)
+		articles = append(articles, &article)
 	}
-	return articles, nil
+	return toServiceArticles(articles), nil
 }
 
-func (r *Repository) GetArticleByID(ctx context.Context, id int64) (*Article, error) {
+func (r *Repository) GetArticleByID(ctx context.Context, id int64) (*articleSvc.Article, error) {
 	qb := squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar).Select("*").From("article").Where(squirrel.Eq{"id": id})
 	sql, args, err := qb.ToSql()
 	if err != nil {
@@ -62,5 +63,5 @@ func (r *Repository) GetArticleByID(ctx context.Context, id int64) (*Article, er
 		return nil, err
 	}
 
-	return &article, nil
+	return toServiceArticle(article), nil
 }

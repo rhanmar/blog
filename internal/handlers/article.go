@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"fmt"
 	articleSvc "github.com/rhanmar/blog/internal/services/article"
 	"log"
@@ -8,7 +9,12 @@ import (
 	"strconv"
 )
 
-func GetArticles(articleService *articleSvc.Service) http.HandlerFunc {
+type articleService interface {
+	GetArticles(context.Context) ([]*articleSvc.Article, error)
+	GetArticleByID(context.Context, int64) (*articleSvc.Article, error)
+}
+
+func GetArticles(articleService articleService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		articles, err := articleService.GetArticles(r.Context())
 		if err != nil {
@@ -18,7 +24,7 @@ func GetArticles(articleService *articleSvc.Service) http.HandlerFunc {
 	}
 }
 
-func GetArticleByID(articleService *articleSvc.Service) http.HandlerFunc {
+func GetArticleByID(articleService articleService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id, err := strconv.Atoi(r.URL.Path[len("/article/"):])
 		if err != nil {
@@ -27,7 +33,7 @@ func GetArticleByID(articleService *articleSvc.Service) http.HandlerFunc {
 		fmt.Printf("Received ID: %d \n", id)
 		article, err := articleService.GetArticleByID(r.Context(), int64(id))
 		if err != nil {
-			log.Fatalf("%v", err)
+			log.Fatalf("[GetArticleByID] %v", err)
 		}
 		if article == nil {
 			w.WriteHeader(http.StatusNotFound)
