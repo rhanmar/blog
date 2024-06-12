@@ -1,7 +1,6 @@
 FROM golang:1.21 AS build
 WORKDIR /app
-COPY main.go .
-RUN go mod init blog && go mod tidy
+COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -o main .
 
 
